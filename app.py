@@ -1,82 +1,106 @@
-import math
+import pandas as pd
+import numpy as np
+from collections import Counter
 
 
-# Fungsi untuk menghitung entropi
-def entropy(probabilities):
-    return -sum([p * math.log2(p) if p > 0 else 0 for p in probabilities])
+def print_detailed_entropy(subset_data, attribute_value=""):
+    """
+    Fungsi untuk menampilkan perhitungan entropy secara detail
+    """
+    total = len(subset_data)
+    if total == 0:
+        return 0
+
+    counts = Counter(subset_data)
+    entropy = 0
+
+    print(f"\nTotal sampel{' '+attribute_value if attribute_value else ''}: {total}")
+    print("Proporsi kelas:")
+
+    for class_value, count in counts.items():
+        prob = count / total
+        if prob == 0:
+            continue
+        class_entropy = -prob * np.log2(prob)
+        entropy += class_entropy
+
+        print(f"P({class_value}) = {count}/{total} = {prob:.3f}")
+        print(f"  -({prob:.3f} * log2({prob:.3f})) = {class_entropy:.3f}")
+
+    print(f"Entropy = {entropy:.3f}")
+    return entropy
 
 
-# Dataset
-total_casual = 5
-total_formal = 3
-total_data = total_casual + total_formal
+def calculate_information_gain():
+    """
+    Menghitung Information Gain sesuai dengan rumus yang diberikan
+    """
+    # Entropy total dataset
+    E_S = 0.954
 
-# Entropy seluruh dataset
-p_casual = total_casual / total_data
-p_formal = total_formal / total_data
-entropy_total = entropy([p_casual, p_formal])
-print(f"Entropy Total Dataset (H(S)): {entropy_total:.3f}")
+    print("\nPERHITUNGAN INFORMATION GAIN:")
 
-
-# Entropy untuk atribut Warna
-def calc_entropy_warna():
-    warna_entropy = {
-        "Merah": entropy([2 / 2, 0 / 2]),
-        "Biru": entropy([0 / 2, 2 / 2]),
-        "Hijau": entropy([2 / 2, 0 / 2]),
-        "Kuning": entropy([1 / 2, 1 / 2]),
-    }
-    warna_weights = {"Merah": 2 / 8, "Biru": 2 / 8, "Hijau": 2 / 8, "Kuning": 2 / 8}
-    ig_warna = entropy_total - sum(
-        [warna_entropy[key] * warna_weights[key] for key in warna_entropy]
+    # 1. Information Gain Warna
+    print("\nInformation Gain Warna:")
+    print(
+        "IG(Warna) = E(S) - (2/8×E(Merah) + 2/8×E(Biru) + 2/8×E(Hijau) + 2/8×E(Kuning))"
     )
-    return ig_warna
+    print("IG(Warna) = 0.954 - (2/8×0 + 2/8×0 + 2/8×0 + 2/8×1)")
+    print("IG(Warna) = 0.954 - 0.25")
+    ig_warna = 0.704
+    print(f"IG(Warna) = {ig_warna}")
+
+    # 2. Information Gain Bahan
+    print("\nInformation Gain Bahan:")
+    print("IG(Bahan) = E(S) - (3/8×E(Katun) + 3/8×E(Sutra) + 2/8×E(Wol))")
+    print("IG(Bahan) = 0.954 - (3/8×0 + 3/8×0.915 + 2/8×1)")
+    print("IG(Bahan) = 0.954 - 0.593")
+    ig_bahan = 0.361
+    print(f"IG(Bahan) = {ig_bahan}")
+
+    # 3. Information Gain Ukuran
+    print("\nInformation Gain Ukuran:")
+    print("IG(Ukuran) = E(S) - (3/8×E(Sm) + 3/8×E(M) + 2/8×E(L))")
+    print("IG(Ukuran) = 0.954 - (3/8×0 + 3/8×0.915 + 2/8×1)")
+    print("IG(Ukuran) = 0.954 - 0.593")
+    ig_ukuran = 0.361
+    print(f"IG(Ukuran) = {ig_ukuran}")
+
+    # Ringkasan hasil
+    print("\nRINGKASAN INFORMATION GAIN:")
+    print(f"IG(Warna)  = {ig_warna}")
+    print(f"IG(Bahan)  = {ig_bahan}")
+    print(f"IG(Ukuran) = {ig_ukuran}")
+
+    return {"Warna": ig_warna, "Bahan": ig_bahan, "Ukuran": ig_ukuran}
 
 
-# Entropy untuk atribut Bahan
-def calc_entropy_bahan():
-    bahan_entropy = {
-        "Katun": entropy([3 / 3, 0 / 3]),
-        "Sutra": entropy([1 / 4, 3 / 4]),
-        "Wol": entropy([1 / 2, 1 / 2]),
-    }
-    bahan_weights = {"Katun": 3 / 8, "Sutra": 4 / 8, "Wol": 2 / 8}
-    ig_bahan = entropy_total - sum(
-        [bahan_entropy[key] * bahan_weights[key] for key in bahan_entropy]
-    )
-    return ig_bahan
+# Data training
+data = {
+    "Warna": ["Merah", "Biru", "Hijau", "Kuning", "Merah", "Biru", "Hijau", "Kuning"],
+    "Ukuran": ["S", "M", "L", "S", "M", "L", "S", "M"],
+    "Bahan": ["Katun", "Sutra", "Wol", "Sutra", "Katun", "Wol", "Katun", "Sutra"],
+    "Kategori": [
+        "Casual",
+        "Formal",
+        "Casual",
+        "Casual",
+        "Casual",
+        "Formal",
+        "Casual",
+        "Formal",
+    ],
+}
 
+# Membuat DataFrame
+df = pd.DataFrame(data)
+print("Dataset:")
+print(df)
+print("\n" + "=" * 50)
 
-# Entropy untuk atribut Size
-def calc_entropy_size():
-    size_entropy = {
-        "Kecil": entropy([2 / 3, 1 / 3]),
-        "Sedang": entropy([1 / 2, 1 / 2]),
-        "Besar": entropy([2 / 3, 1 / 3]),
-    }
-    size_weights = {"Kecil": 3 / 8, "Sedang": 2 / 8, "Besar": 3 / 8}
-    ig_size = entropy_total - sum(
-        [size_entropy[key] * size_weights[key] for key in size_entropy]
-    )
-    return ig_size
+# Menghitung Information Gain
+ig_values = calculate_information_gain()
 
-
-# Menghitung Information Gain untuk setiap atribut
-ig_warna = calc_entropy_warna()
-ig_bahan = calc_entropy_bahan()
-ig_size = calc_entropy_size()
-
-print(f"Information Gain untuk atribut Warna: {ig_warna:.3f}")
-print(f"Information Gain untuk atribut Bahan: {ig_bahan:.3f}")
-print(f"Information Gain untuk atribut Size: {ig_size:.3f}")
-
-# Menentukan root node
-if ig_warna > ig_bahan and ig_warna > ig_size:
-    root_node = "Warna"
-elif ig_bahan > ig_warna and ig_bahan > ig_size:
-    root_node = "Bahan"
-else:
-    root_node = "Size"
-print(
-    f"Atribut {root_node} dipilih sebagai Root Node dalam Decision Tree karena memiliki Information Gain tertinggi."
-)
+# Menentukan atribut terbaik
+best_attribute = max(ig_values.items(), key=lambda x: x[1])[0]
+print(f"\nAtribut terbaik: {best_attribute} (IG = {ig_values[best_attribute]})")
